@@ -13,6 +13,8 @@ class SplashScreenPage extends StatefulWidget {
 
 class _SplashScreenPageState extends State<SplashScreenPage> {
 
+  bool hasError = false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -22,6 +24,8 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
   }
 
   Future<void> _initData() async {
+    setState(() => hasError = false);
+
     try {
       await ApiService.fetchAndCacheMonstersData(isar);
 
@@ -32,6 +36,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
       }
     } catch (e) {
       print("Error while fetching API data in splash screen: $e");
+      setState(() => hasError = true);
     }
   }
 
@@ -41,17 +46,47 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/images/loading.gif', width: 100),
-            const SizedBox(height: 20),
-            const Text("Loading data...", style: TextStyle(
-              fontFamily: 'Zelda',
-              fontSize: 20
-            ))
-          ],
-        ),
+        child: hasError == false ? _buildLoading() : _buildError()
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset('assets/images/loading.gif', width: 180),
+        const SizedBox(height: 20),
+        const Text("Loading data", style: TextStyle(
+          fontFamily: 'Zelda',
+          fontSize: 22,
+          color: Colors.white70,
+        ))
+      ],
+    );
+  }
+
+  Widget _buildError() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20.0),
+            child: Image.asset('assets/images/link-cold.gif', fit: BoxFit.cover, width: 150, height: 100,),
+          ),
+          const SizedBox(height: 20),
+          Text("Unaible to retrieve data, please check your internet connection",
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white, fontSize: 16),),
+          const SizedBox(height: 30),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[800]),
+            onPressed: _initData,
+            child: const Text("RETRY", style: TextStyle(color: Colors.white)),
+          )
+        ],
       ),
     );
   }

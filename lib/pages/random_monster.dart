@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:isar/isar.dart';
 import 'package:zelda_app/api/api.dart';
 import 'package:zelda_app/data/monsters_data.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:zelda_app/database/isar_setup.dart';
 import 'package:zelda_app/database/monster.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class RandomMonsterPage extends StatefulWidget {
   const RandomMonsterPage({super.key});
@@ -39,8 +41,13 @@ class _RandomMonsterPageState extends State<RandomMonsterPage> {
 
     final Monster randomMonster = monsterData[randomIndex];
 
-    if (mounted) {
-       await precacheImage(NetworkImage(randomMonster.image!), context);
+    if (randomMonster.image != null && mounted) {
+      try {
+        var fileInfo = await DefaultCacheManager().getSingleFile(randomMonster.image!);
+        await precacheImage(FileImage(fileInfo), context);
+      } catch (e) {
+        print("Error while preloading the image");
+      }
     }
 
     return randomMonster;
@@ -143,9 +150,15 @@ class _RandomMonsterPageState extends State<RandomMonsterPage> {
                             const SizedBox(height: 30),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(20.0),
-                              child: Image.network(
-                                '${data.image}',
+                              child: CachedNetworkImage(
+                                imageUrl: '${data.image}',
                                 fit: BoxFit.cover,
+                                fadeInDuration: Duration.zero,
+                                fadeOutDuration: Duration.zero,
+                                placeholderFadeInDuration: Duration.zero,
+                                errorWidget: (context, url, error) {
+                                  return Text("Image failed to load. You may be offline.");
+                                },
                               ),
                             )
                           ],

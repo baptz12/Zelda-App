@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:math';
@@ -38,38 +39,47 @@ class ApiService {
     //   throw Exception('API is not available');
     // }
 
-    // final count = await isar.monsters.count();
+    final botwCount = await isar.monsters.filter().gameEqualTo('botw').count();
+    final totkCount = await isar.monsters.filter().gameEqualTo('totk').count();
 
-    // if (count > 0) {
-    //   // Display loading screen even if data
-    //   await Future.delayed(const Duration(seconds: 1));
-    //   return;
-    // }
+    if (botwCount > 80 && totkCount > 80) {
+      // Display loading screen even if data
+      await Future.delayed(const Duration(seconds: 1));
+      return;
+    }
 
-    final responseBotw = await http.get(Uri.parse("https://botw-compendium.herokuapp.com/api/v3/compendium/category/monsters?game=botw"));
-
-    final responseTotk = await http.get(Uri.parse("https://botw-compendium.herokuapp.com/api/v3/compendium/category/monsters?game=totk"));
-
-    if (responseBotw.statusCode == 200 && responseBotw.statusCode == 200) {
-      final jsonBotw = jsonDecode(responseBotw.body);
-      final jsonTotk = jsonDecode(responseTotk.body);
-
-      List<Monster> monstersToSave = [];
-
-      for (var item in jsonBotw['data']) {
-        monstersToSave.add(_parseMonster(item, 'botw'));
+    try {
+      final responseBotw = await http.get(Uri.parse("https://botw-compendium.herokuapp.com/api/v3/compendium/category/monsters?game=botw")).timeout(const Duration(seconds: 15));
+  
+      final responseTotk = await http.get(Uri.parse("https://botw-compendium.herokuapp.com/api/v3/compendium/category/monsters?game=totk")).timeout(const Duration(seconds: 15));
+  
+  
+      if (responseBotw.statusCode == 200 && responseTotk.statusCode == 200) {
+        final jsonBotw = jsonDecode(responseBotw.body);
+        final jsonTotk = jsonDecode(responseTotk.body);
+  
+        List<Monster> monstersToSave = [];
+  
+        for (var item in jsonBotw['data']) {
+          monstersToSave.add(_parseMonster(item, 'botw'));
+        }
+  
+        for (var item in jsonTotk['data']) {
+          monstersToSave.add(_parseMonster(item, 'totk'));
+        }
+  
+        await isar.writeTxn(() async {
+          await isar.monsters.clear();
+          await isar.monsters.putAll(monstersToSave);
+        });
+  
+      } else {
+        throw Exception("Error while fetching API Data at the startup");
       }
-
-      for (var item in jsonTotk['data']) {
-        monstersToSave.add(_parseMonster(item, 'totk'));
-      }
-
-      await isar.writeTxn(() async {
-        await isar.monsters.putAll(monstersToSave);
-      });
-
-    } else {
-      throw Exception("Error while fetching API Data at the startup");
+    } on TimeoutException catch (_) {
+      throw Exception("Server timeout.");
+    } catch (e) {
+      throw Exception("Connection timeout.");
     }
   }
 
