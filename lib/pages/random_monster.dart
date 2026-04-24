@@ -66,7 +66,10 @@ class _RandomMonsterPageState extends State<RandomMonsterPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text("Random Mob"),
+        title: const Text("random mob", style: TextStyle(
+          fontFamily: 'Zelda',
+          fontSize: 27,
+        ),),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -102,6 +105,12 @@ class _RandomMonsterPageState extends State<RandomMonsterPage> {
                         activeFgColor: const Color(0xFFFFFDE7),
                         inactiveFgColor: Colors.black54,
                         labels: ['BOTW', 'TOTK'],
+                        customTextStyles: [
+                          const TextStyle(
+                            fontFamily: 'Zelda',
+                            fontSize: 15,
+                          )
+                        ],
                         onToggle: (index) {
                         if (index != null) {
                           setState(() {

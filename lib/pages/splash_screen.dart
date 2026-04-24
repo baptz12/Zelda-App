@@ -35,11 +35,30 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
         );
       }
     } catch (e) {
-      print("Error while fetching API data in splash screen: $e");
+      print("Error while fetching API (monsters) data in splash screen: $e");
+      setState(() => hasError = true);
+    }
+
+    try {
+      await ApiService.fetchAndCacheEquipmentData(isar);
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeScreenPage())
+        );
+      }
+    } catch (e) {
+      print("Error while fetching API (equipment) data in splash screen: $e");
       setState(() => hasError = true);
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    precacheImage(AssetImage("assets/images/logo2.png"), context);
+  }
 
   @override
   Widget build(BuildContext context) {

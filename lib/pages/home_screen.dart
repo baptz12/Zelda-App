@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:zelda_app/pages/equipment_screen.dart';
 import 'package:zelda_app/pages/random_monster.dart';
 
 class HomeScreenPage extends StatefulWidget {
@@ -12,15 +13,29 @@ class HomeScreenPage extends StatefulWidget {
 
 class _HomeScreenPageState extends State<HomeScreenPage> {
 
+  late AssetImage logoImage;
+
+  @override
+  void initState() {
+    super.initState();
+    logoImage = const AssetImage('assets/images/logo2.png');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(logoImage, context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Image.asset('assets/images/logo2.png', width: 130),
+        title: Image(image: logoImage, width: 140, gaplessPlayback: true),
         elevation: 0,
-        toolbarHeight: 100,
+        toolbarHeight: 130,
         centerTitle: true,
       ),
       backgroundColor: Color.fromARGB(255, 247, 255, 255),
@@ -55,7 +70,34 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EquipmentPage()
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(60),
+            child: Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.lightBlue.withOpacity(0.5),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  )
+                ]
+              ),
+              child: Image.asset(
+                'assets/images/botw_hylian_shield_icon.png',
+                width: 55,),
+            ),
+          ),
+          const SizedBox(height: 20,),
           InkWell(
               onTap: () {
                 Navigator.push(
@@ -65,7 +107,7 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                     ),
                 );
               },
-              borderRadius: BorderRadius.circular(50),
+              borderRadius: BorderRadius.circular(60),
               child: Container(
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
@@ -78,9 +120,9 @@ class _HomeScreenPageState extends State<HomeScreenPage> {
                     )
                   ]
                 ),
-                  child: Image.asset(
-                    'assets/images/mob.png',
-                    width: 40,)
+                child: Image.asset(
+                  'assets/images/mob.png',
+                  width: 50,)
               )
           ),
         ],

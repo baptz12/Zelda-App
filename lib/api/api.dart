@@ -7,6 +7,7 @@ import 'package:isar/isar.dart';
 import 'package:zelda_app/data/monsters_data.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:zelda_app/database/equipment.dart';
 import 'package:zelda_app/database/monster.dart';
 
 class ApiService {
@@ -92,6 +93,63 @@ class ApiService {
       ..dlc = item['dlc']
       ..commonLocations = List<String>.from(item['common_locations'] ?? [])
       ..drops = List<String>.from(item['drops'] ?? [])
+      ..game = game;
+  }
+
+  static Future<void> fetchAndCacheEquipmentData(Isar isar) async {
+    final botwCount = await isar.equipments.filter().gameEqualTo('botw').count();
+    final totkCount = await isar.equipments.filter().gameEqualTo('totk').count();
+
+    if (botwCount > 80 && totkCount > 80) {
+      // Display loading screen even if data
+      await Future.delayed(const Duration(seconds: 1));
+      return;
+    }
+
+    try {
+      final responseBotw = await http.get(Uri.parse("https://botw-compendium.herokuapp.com/api/v3/compendium/category/equipment?game=botw")).timeout(const Duration(seconds: 15));
+  
+      final responseTotk = await http.get(Uri.parse("https://botw-compendium.herokuapp.com/api/v3/compendium/category/equipment?game=totk")).timeout(const Duration(seconds: 15));
+  
+  
+      if (responseBotw.statusCode == 200 && responseTotk.statusCode == 200) {
+        final jsonBotw = jsonDecode(responseBotw.body);
+        final jsonTotk = jsonDecode(responseTotk.body);
+  
+        List<Equipment> equipmentsToSave = [];
+  
+        for (var item in jsonBotw['data']) {
+          equipmentsToSave.add(_parseEquipment(item, 'botw'));
+        }
+  
+        for (var item in jsonTotk['data']) {
+          equipmentsToSave.add(_parseEquipment(item, 'totk'));
+        }
+  
+        await isar.writeTxn(() async {
+          await isar.equipments.clear();
+          await isar.equipments.putAll(equipmentsToSave);
+        });
+  
+      } else {
+        throw Exception("Error while fetching API Data at the startup");
+      }
+    } on TimeoutException catch (_) {
+      throw Exception("Server timeout.");
+    } catch (e) {
+      throw Exception("Connection timeout.");
+    }
+  }
+
+  static Equipment _parseEquipment(Map<String, dynamic> item, String game) {
+    return Equipment()
+      ..apiId = item['id']
+      ..name = item['name']
+      ..description = item['description']
+      ..image = item['image']
+      ..dlc = item['dlc']
+      ..commonLocations = List<String>.from(item['common_locations'] ?? [])
+      ..properties = EquipmentProperties.fromJson(item['properties'])
       ..game = game;
   }
 }

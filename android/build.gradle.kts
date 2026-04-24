@@ -1,4 +1,4 @@
-val compileSdkValue by extra(34)
+val compileSdkValue by extra(36)
 val minSdkValue by extra(21)
 
 allprojects {
