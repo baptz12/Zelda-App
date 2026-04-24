@@ -54,7 +54,11 @@ jobs:
             - name: 📦 Prepare artifacts
               run: |
                 mkdir -p artifacts
-                cp build/app/outputs/flutter-apk/*.apk artifacts/
+                cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk artifacts/ZeldaApp-${{ github.ref_name }}-Android-64bit.apk
+
+                cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk artifacts/ZeldaApp-${{ github.ref_name }}-Android-OldPhones.apk
+            
+                cp build/app/outputs/flutter-apk/app-x86_64-release.apk artifacts/ZeldaApp-${{ github.ref_name }}-Emulator.apk
 
         # ─────────────── ONLY ON TAGS ───────────────
             - name: 🏷️ Create or update Release
